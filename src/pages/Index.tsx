@@ -7,41 +7,7 @@ import { Plus, LogOut } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-
-// Mock data
-const mockRequests = [
-  {
-    id: "1",
-    title: "Access to Development Environment",
-    description: "Need access to the development environment for the new project",
-    status: "open" as const,
-    createdAt: new Date("2024-02-20"),
-  },
-  {
-    id: "2",
-    title: "Software Installation Request",
-    description: "Request for installation of design software on my workstation",
-    status: "in-progress" as const,
-    createdAt: new Date("2024-02-19"),
-  },
-];
-
-const mockComments = [
-  {
-    id: "1",
-    author: "John Doe",
-    content: "I need this urgently for the upcoming sprint.",
-    createdAt: new Date("2024-02-20T10:00:00"),
-    isAdmin: false,
-  },
-  {
-    id: "2",
-    author: "Support Team",
-    content: "We're reviewing your request. Will get back to you shortly.",
-    createdAt: new Date("2024-02-20T10:30:00"),
-    isAdmin: true,
-  },
-];
+import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
@@ -49,10 +15,31 @@ const Index = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
+  const { data: tasks, isLoading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          created_by:profiles!tasks_created_by_fkey(id),
+          assigned_to:profiles!tasks_assigned_to_fkey(id)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,7 +81,7 @@ const Index = () => {
                 Cancel
               </Button>
             </div>
-            <CreateRequestForm />
+            <CreateRequestForm onSuccess={() => setShowCreateForm(false)} />
           </div>
         ) : selectedRequest ? (
           <div className="bg-white rounded-lg shadow p-6">
@@ -107,18 +94,19 @@ const Index = () => {
                 Back to List
               </Button>
             </div>
-            <div className="mb-8">
-              <h3 className="text-lg font-medium mb-4">Comments</h3>
-              <CommentThread comments={mockComments} />
-            </div>
+            <CommentThread taskId={selectedRequest} />
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockRequests.map((request) => (
+            {tasks?.map((task) => (
               <RequestCard
-                key={request.id}
-                {...request}
-                onClick={() => setSelectedRequest(request.id)}
+                key={task.id}
+                title={task.title}
+                description={task.description || ""}
+                status={task.status}
+                createdAt={new Date(task.created_at)}
+                priority={task.priority}
+                onClick={() => setSelectedRequest(task.id)}
               />
             ))}
           </div>

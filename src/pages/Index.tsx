@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { RequestCard } from "@/components/RequestCard";
 import { CommentThread } from "@/components/CommentThread";
 import { CreateRequestForm } from "@/components/CreateRequestForm";
-import { Plus } from "lucide-react";
+import { Plus, LogOut } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 // Mock data
 const mockRequests = [
@@ -43,19 +46,41 @@ const mockComments = [
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Service Desk</h1>
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus size={20} />
-            New Request
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Service Desk</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Welcome, {user?.email} {isAdmin && "(Admin)"}
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus size={20} />
+              New Request
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="flex items-center gap-2"
+            >
+              <LogOut size={20} />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {showCreateForm ? (

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { RequestCard } from "@/components/RequestCard";
 import { RequestDetails } from "@/components/RequestDetails";
 import { CreateRequestForm } from "@/components/CreateRequestForm";
-import { Plus, LogOut } from "lucide-react";
+import { Plus, LogOut, Archive, Kanban } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -12,11 +12,13 @@ import { useQuery } from "@tanstack/react-query";
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [isKanbanMode, setIsKanbanMode] = useState(false);
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', showArchived],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tasks')
@@ -25,7 +27,7 @@ const Index = () => {
           created_by:profiles!tasks_created_by_fkey(id),
           assigned_to:profiles!tasks_assigned_to_fkey(id)
         `)
-        .neq('status', 'archived')
+        .eq('status', showArchived ? 'archived' : 'status')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -52,23 +54,80 @@ const Index = () => {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
+  const renderKanbanView = () => {
+    const columns = {
+      new: tasks?.filter(task => task.status === 'new') || [],
+      'in-consideration': tasks?.filter(task => task.status === 'in-consideration') || [],
+      'in-implementation': tasks?.filter(task => task.status === 'in-implementation') || [],
+      done: tasks?.filter(task => task.status === 'done') || [],
+      backlogged: tasks?.filter(task => task.status === 'backlogged') || [],
+    };
+
+    return (
+      <div className="grid grid-cols-5 gap-4 overflow-x-auto min-h-[500px]">
+        {Object.entries(columns).map(([status, columnTasks]) => (
+          <div key={status} className="bg-gray-50 p-4 rounded-lg min-w-[300px]">
+            <h3 className="text-lg font-semibold mb-4 capitalize">
+              {status.split('-').join(' ')}
+            </h3>
+            <div className="space-y-4">
+              {columnTasks.map(task => (
+                <RequestCard
+                  key={task.id}
+                  title={task.title}
+                  description={task.description || ""}
+                  status={task.status}
+                  createdAt={new Date(task.created_at)}
+                  priority={task.priority}
+                  onClick={() => setSelectedRequest(task.id)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Service Desk</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {showArchived ? "Archived Requests" : "Service Desk"}
+            </h1>
             <p className="text-sm text-gray-600 mt-1">
               Welcome, {user?.email} {isAdmin && "(Admin)"}
             </p>
           </div>
           <div className="flex gap-4">
+            {!showArchived && (
+              <>
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={20} />
+                  New Request
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsKanbanMode(!isKanbanMode)}
+                  className="flex items-center gap-2"
+                >
+                  <Kanban size={20} />
+                  {isKanbanMode ? "List View" : "Kanban View"}
+                </Button>
+              </>
+            )}
             <Button
-              onClick={() => setShowCreateForm(true)}
+              variant="outline"
+              onClick={() => setShowArchived(!showArchived)}
               className="flex items-center gap-2"
             >
-              <Plus size={20} />
-              New Request
+              <Archive size={20} />
+              {showArchived ? "Active Requests" : "Archived Requests"}
             </Button>
             <Button
               variant="outline"
@@ -120,19 +179,21 @@ const Index = () => {
             onBack={() => setSelectedRequest(null)}
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {tasks?.map((task) => (
-              <RequestCard
-                key={task.id}
-                title={task.title}
-                description={task.description || ""}
-                status={task.status}
-                createdAt={new Date(task.created_at)}
-                priority={task.priority}
-                onClick={() => setSelectedRequest(task.id)}
-              />
-            ))}
-          </div>
+          isKanbanMode ? renderKanbanView() : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {tasks?.map((task) => (
+                <RequestCard
+                  key={task.id}
+                  title={task.title}
+                  description={task.description || ""}
+                  status={task.status}
+                  createdAt={new Date(task.created_at)}
+                  priority={task.priority}
+                  onClick={() => setSelectedRequest(task.id)}
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

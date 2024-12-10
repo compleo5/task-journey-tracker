@@ -20,16 +20,23 @@ const Index = () => {
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks', showArchived],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('tasks')
         .select(`
           *,
           created_by:profiles!tasks_created_by_fkey(id),
           assigned_to:profiles!tasks_assigned_to_fkey(id)
         `)
-        .eq('status', showArchived ? 'archived' : 'status')
         .order('created_at', { ascending: false });
 
+      // Only apply status filter when showing archived items
+      if (showArchived) {
+        query = query.eq('status', 'archived');
+      } else {
+        query = query.neq('status', 'archived'); // Show all non-archived items
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },

@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type TaskStatus = Database['public']['Enums']['task_status'];
 
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
@@ -47,7 +50,7 @@ const Index = () => {
     e.dataTransfer.setData('taskId', taskId);
   };
 
-  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+  const handleDrop = async (e: React.DragEvent, newStatus: TaskStatus) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('taskId');
     
@@ -59,7 +62,6 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Invalidate and refetch tasks
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success(`Task status updated to ${newStatus.split('-').join(' ')}`);
     } catch (error) {
@@ -88,12 +90,13 @@ const Index = () => {
   }
 
   const renderKanbanView = () => {
-    const columns = {
-      new: tasks?.filter(task => task.status === 'new') || [],
+    const columns: Record<TaskStatus, any[]> = {
+      'new': tasks?.filter(task => task.status === 'new') || [],
       'in-consideration': tasks?.filter(task => task.status === 'in-consideration') || [],
       'in-implementation': tasks?.filter(task => task.status === 'in-implementation') || [],
-      done: tasks?.filter(task => task.status === 'done') || [],
-      backlogged: tasks?.filter(task => task.status === 'backlogged') || [],
+      'done': tasks?.filter(task => task.status === 'done') || [],
+      'backlogged': tasks?.filter(task => task.status === 'backlogged') || [],
+      'archived': tasks?.filter(task => task.status === 'archived') || [],
     };
 
     return (
@@ -103,7 +106,7 @@ const Index = () => {
             key={status} 
             className="bg-gray-50 p-4 rounded-lg min-w-[300px]"
             onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => handleDrop(e, status)}
+            onDrop={(e) => handleDrop(e, status as TaskStatus)}
           >
             <h3 className="text-lg font-semibold mb-4 capitalize">
               {status.split('-').join(' ')}

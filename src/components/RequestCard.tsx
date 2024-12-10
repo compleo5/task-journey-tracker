@@ -9,6 +9,10 @@ interface RequestCardProps {
   priority: "low" | "medium" | "high";
   createdAt: Date;
   onClick: () => void;
+  taskId?: string;
+  onDragStart?: (e: React.DragEvent, taskId: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent, status: RequestCardProps['status']) => void;
 }
 
 const statusColors = {
@@ -26,28 +30,48 @@ const priorityColors = {
   "high": "bg-red-100 text-red-800",
 };
 
-export const RequestCard = ({ title, description, status, priority, createdAt, onClick }: RequestCardProps) => {
+export const RequestCard = ({ 
+  title, 
+  description, 
+  status, 
+  priority, 
+  createdAt, 
+  onClick,
+  taskId,
+  onDragStart,
+  onDragOver,
+  onDrop 
+}: RequestCardProps) => {
   return (
     <Card 
       className="p-6 hover:shadow-md transition-shadow cursor-pointer animate-fade-in"
       onClick={onClick}
+      draggable={!!onDragStart}
+      onDragStart={(e) => onDragStart?.(e, taskId!)}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragOver?.(e);
+      }}
+      onDrop={(e) => onDrop?.(e, status)}
     >
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="font-semibold text-lg text-gray-900 truncate" title={title}>
+      <div className="flex flex-col h-full">
+        <h3 className="font-semibold text-lg text-gray-900 truncate mb-4" title={title}>
           {title.length > 10 ? `${title.substring(0, 10)}...` : title}
         </h3>
-        <div className="flex gap-2">
-          <Badge className={priorityColors[priority]}>
-            {priority.charAt(0).toUpperCase() + priority.slice(1)}
-          </Badge>
-          <Badge className={statusColors[status]}>
-            {status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-          </Badge>
+        <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{description}</p>
+        <div className="mt-auto">
+          <div className="flex gap-2 mb-4">
+            <Badge className={priorityColors[priority]}>
+              {priority.charAt(0).toUpperCase() + priority.slice(1)}
+            </Badge>
+            <Badge className={statusColors[status]}>
+              {status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+            </Badge>
+          </div>
+          <div className="text-sm text-gray-500">
+            Created {formatDistanceToNow(createdAt)} ago
+          </div>
         </div>
-      </div>
-      <p className="text-gray-600 mb-4 line-clamp-2">{description}</p>
-      <div className="text-sm text-gray-500">
-        Created {formatDistanceToNow(createdAt)} ago
       </div>
     </Card>
   );

@@ -7,7 +7,8 @@ import { Plus, LogOut, Archive, Kanban } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
@@ -16,6 +17,7 @@ const Index = () => {
   const [isKanbanMode, setIsKanbanMode] = useState(false);
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks', showArchived],
@@ -29,11 +31,10 @@ const Index = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Only apply status filter when showing archived items
       if (showArchived) {
         query = query.eq('status', 'archived');
       } else {
-        query = query.neq('status', 'archived'); // Show all non-archived items
+        query = query.neq('status', 'archived');
       }
 
       const { data, error } = await query;
@@ -41,6 +42,31 @@ const Index = () => {
       return data;
     },
   });
+
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData('taskId', taskId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('taskId');
+    
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ status: newStatus })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      // Invalidate and refetch tasks
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success(`Task status updated to ${newStatus.split('-').join(' ')}`);
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast.error('Failed to update task status');
+    }
+  };
 
   // Calculate statistics
   const stats = {
@@ -73,7 +99,12 @@ const Index = () => {
     return (
       <div className="grid grid-cols-5 gap-4 overflow-x-auto min-h-[500px]">
         {Object.entries(columns).map(([status, columnTasks]) => (
-          <div key={status} className="bg-gray-50 p-4 rounded-lg min-w-[300px]">
+          <div 
+            key={status} 
+            className="bg-gray-50 p-4 rounded-lg min-w-[300px]"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, status)}
+          >
             <h3 className="text-lg font-semibold mb-4 capitalize">
               {status.split('-').join(' ')}
             </h3>
@@ -81,12 +112,14 @@ const Index = () => {
               {columnTasks.map(task => (
                 <RequestCard
                   key={task.id}
+                  taskId={task.id}
                   title={task.title}
                   description={task.description || ""}
                   status={task.status}
                   createdAt={new Date(task.created_at)}
                   priority={task.priority}
                   onClick={() => setSelectedRequest(task.id)}
+                  onDragStart={handleDragStart}
                 />
               ))}
             </div>

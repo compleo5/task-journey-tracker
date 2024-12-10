@@ -37,6 +37,7 @@ export const CreateRequestForm = ({ onSuccess }: CreateRequestFormProps) => {
           description,
           priority,
           created_by: user.id,
+          status: 'new',
         });
 
       if (error) throw error;

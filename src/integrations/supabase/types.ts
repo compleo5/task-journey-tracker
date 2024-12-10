@@ -126,7 +126,13 @@ export type Database = {
     }
     Enums: {
       task_priority: "low" | "medium" | "high"
-      task_status: "open" | "in-progress" | "resolved"
+      task_status:
+        | "new"
+        | "in-consideration"
+        | "in-implementation"
+        | "done"
+        | "archived"
+        | "backlogged"
     }
     CompositeTypes: {
       [_ in never]: never

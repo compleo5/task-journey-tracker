@@ -5,16 +5,19 @@ import { formatDistanceToNow } from "date-fns";
 interface RequestCardProps {
   title: string;
   description: string;
-  status: "open" | "in-progress" | "resolved";
+  status: "new" | "in-consideration" | "in-implementation" | "done" | "archived" | "backlogged";
   priority: "low" | "medium" | "high";
   createdAt: Date;
   onClick: () => void;
 }
 
 const statusColors = {
-  "open": "bg-yellow-100 text-yellow-800",
-  "in-progress": "bg-blue-100 text-blue-800",
-  "resolved": "bg-green-100 text-green-800",
+  "new": "bg-blue-100 text-blue-800",
+  "in-consideration": "bg-purple-100 text-purple-800",
+  "in-implementation": "bg-yellow-100 text-yellow-800",
+  "done": "bg-green-100 text-green-800",
+  "archived": "bg-gray-100 text-gray-800",
+  "backlogged": "bg-orange-100 text-orange-800",
 };
 
 const priorityColors = {
@@ -36,7 +39,7 @@ export const RequestCard = ({ title, description, status, priority, createdAt, o
             {priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Badge>
           <Badge className={statusColors[status]}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
           </Badge>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { RequestCard } from "@/components/RequestCard";
 import { RequestDetails } from "@/components/RequestDetails";
 import { CreateRequestForm } from "@/components/CreateRequestForm";
-import { Plus, LogOut, Archive } from "lucide-react";
+import { Plus, LogOut } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -12,12 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ['tasks', showArchived],
+    queryKey: ['tasks'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tasks')
@@ -26,13 +25,21 @@ const Index = () => {
           created_by:profiles!tasks_created_by_fkey(id),
           assigned_to:profiles!tasks_assigned_to_fkey(id)
         `)
-        .eq('status', showArchived ? 'archived' : 'new')
+        .neq('status', 'archived')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
     },
   });
+
+  // Calculate statistics
+  const stats = {
+    total: tasks?.length || 0,
+    new: tasks?.filter(task => task.status === 'new').length || 0,
+    inImplementation: tasks?.filter(task => task.status === 'in-implementation').length || 0,
+    done: tasks?.filter(task => task.status === 'done').length || 0,
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -50,30 +57,18 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {showArchived ? "Archived Requests" : "Service Desk"}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Service Desk</h1>
             <p className="text-sm text-gray-600 mt-1">
               Welcome, {user?.email} {isAdmin && "(Admin)"}
             </p>
           </div>
           <div className="flex gap-4">
-            {!showArchived && (
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus size={20} />
-                New Request
-              </Button>
-            )}
             <Button
-              variant="outline"
-              onClick={() => setShowArchived(!showArchived)}
+              onClick={() => setShowCreateForm(true)}
               className="flex items-center gap-2"
             >
-              <Archive size={20} />
-              {showArchived ? "Active Requests" : "Archived Requests"}
+              <Plus size={20} />
+              New Request
             </Button>
             <Button
               variant="outline"
@@ -83,6 +78,26 @@ const Index = () => {
               <LogOut size={20} />
               Logout
             </Button>
+          </div>
+        </div>
+
+        {/* Statistics Section */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-700">Total Tickets</h3>
+            <p className="text-2xl font-bold text-primary">{stats.total}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-700">New</h3>
+            <p className="text-2xl font-bold text-blue-600">{stats.new}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-700">In Implementation</h3>
+            <p className="text-2xl font-bold text-yellow-600">{stats.inImplementation}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-700">Done</h3>
+            <p className="text-2xl font-bold text-green-600">{stats.done}</p>
           </div>
         </div>
 

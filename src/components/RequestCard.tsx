@@ -33,7 +33,9 @@ export const RequestCard = ({ title, description, status, priority, createdAt, o
       onClick={onClick}
     >
       <div className="flex justify-between items-start mb-4">
-        <h3 className="font-semibold text-lg text-gray-900">{title}</h3>
+        <h3 className="font-semibold text-lg text-gray-900 truncate" title={title}>
+          {title.length > 10 ? `${title.substring(0, 10)}...` : title}
+        </h3>
         <div className="flex gap-2">
           <Badge className={priorityColors[priority]}>
             {priority.charAt(0).toUpperCase() + priority.slice(1)}

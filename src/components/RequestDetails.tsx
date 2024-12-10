@@ -14,8 +14,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
+// Define the exact status types to match the database enum
+type TaskStatus = "new" | "in-consideration" | "in-implementation" | "done" | "archived" | "backlogged";
+
 interface RequestDetailsProps {
-  task: any;
+  task: {
+    id: string;
+    title: string;
+    description?: string | null;
+    status: TaskStatus;  // Use the precise type here
+    priority: "low" | "medium" | "high";
+    created_at: string;
+    created_by?: { id: string } | null;
+    assigned_to?: { id: string } | null;
+  };
   onBack: () => void;
 }
 
@@ -38,7 +50,7 @@ export const RequestDetails = ({ task, onBack }: RequestDetailsProps) => {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: TaskStatus) => {
     try {
       const { error } = await supabase
         .from('tasks')

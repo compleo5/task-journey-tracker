@@ -11,6 +11,7 @@ import { TaskHeader } from "@/components/TaskHeader";
 import { TaskStatistics } from "@/components/TaskStatistics";
 import { KanbanView } from "@/components/KanbanView";
 import { ListView } from "@/components/ListView";
+import { Button } from "@/components/ui/button"; // Added this import
 
 type TaskStatus = Database['public']['Enums']['task_status'];
 

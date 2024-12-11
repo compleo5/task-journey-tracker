@@ -100,34 +100,36 @@ const Index = () => {
     };
 
     return (
-      <div className="grid grid-cols-5 gap-4 overflow-x-auto min-h-[500px]">
-        {Object.entries(columns).map(([status, columnTasks]) => (
-          <div 
-            key={status} 
-            className="bg-gray-50 p-4 rounded-lg min-w-[300px]"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => handleDrop(e, status as TaskStatus)}
-          >
-            <h3 className="text-lg font-semibold mb-4 capitalize">
-              {status.split('-').join(' ')}
-            </h3>
-            <div className="space-y-4">
-              {columnTasks.map(task => (
-                <RequestCard
-                  key={task.id}
-                  taskId={task.id}
-                  title={task.title}
-                  description={task.description || ""}
-                  status={task.status}
-                  createdAt={new Date(task.created_at)}
-                  priority={task.priority}
-                  onClick={() => setSelectedRequest(task.id)}
-                  onDragStart={handleDragStart}
-                />
-              ))}
+      <div className="overflow-x-auto pb-4">
+        <div className="grid grid-flow-col auto-cols-[minmax(300px,1fr)] gap-4 min-w-full">
+          {Object.entries(columns).map(([status, columnTasks]) => (
+            <div 
+              key={status} 
+              className="bg-gray-50 p-4 rounded-lg"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, status as TaskStatus)}
+            >
+              <h3 className="text-lg font-semibold mb-4 capitalize">
+                {status.split('-').join(' ')}
+              </h3>
+              <div className="space-y-4">
+                {columnTasks.map(task => (
+                  <RequestCard
+                    key={task.id}
+                    taskId={task.id}
+                    title={task.title}
+                    description={task.description || ""}
+                    status={task.status}
+                    createdAt={new Date(task.created_at)}
+                    priority={task.priority}
+                    onClick={() => setSelectedRequest(task.id)}
+                    onDragStart={handleDragStart}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   };
@@ -135,32 +137,38 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {showArchived ? "Archived Requests" : "Service Desk"}
             </h1>
             <p className="text-sm text-gray-600 mt-1">
               Welcome, {user?.email} {isAdmin && "(Admin)"}
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4">
             {!showArchived && (
               <>
                 <Button
                   onClick={() => setShowCreateForm(true)}
                   className="flex items-center gap-2"
+                  size="sm"
+                  className="sm:size-default"
                 >
                   <Plus size={20} />
-                  New Request
+                  <span className="hidden sm:inline">New Request</span>
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setIsKanbanMode(!isKanbanMode)}
                   className="flex items-center gap-2"
+                  size="sm"
+                  className="sm:size-default"
                 >
                   <Kanban size={20} />
-                  {isKanbanMode ? "List View" : "Kanban View"}
+                  <span className="hidden sm:inline">
+                    {isKanbanMode ? "List View" : "Kanban View"}
+                  </span>
                 </Button>
               </>
             )}
@@ -168,43 +176,49 @@ const Index = () => {
               variant="outline"
               onClick={() => setShowArchived(!showArchived)}
               className="flex items-center gap-2"
+              size="sm"
+              className="sm:size-default"
             >
               <Archive size={20} />
-              {showArchived ? "Active Requests" : "Archived Requests"}
+              <span className="hidden sm:inline">
+                {showArchived ? "Active Requests" : "Archived"}
+              </span>
             </Button>
             <Button
               variant="outline"
               onClick={handleLogout}
               className="flex items-center gap-2"
+              size="sm"
+              className="sm:size-default"
             >
               <LogOut size={20} />
-              Logout
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
 
         {/* Statistics Section */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-700">Total Tickets</h3>
-            <p className="text-2xl font-bold text-primary">{stats.total}</p>
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-700">Total Tickets</h3>
+            <p className="text-xl sm:text-2xl font-bold text-primary">{stats.total}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-700">New</h3>
-            <p className="text-2xl font-bold text-blue-600">{stats.new}</p>
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-700">New</h3>
+            <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.new}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-700">In Implementation</h3>
-            <p className="text-2xl font-bold text-yellow-600">{stats.inImplementation}</p>
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-700">In Implementation</h3>
+            <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.inImplementation}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-700">Done</h3>
-            <p className="text-2xl font-bold text-green-600">{stats.done}</p>
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-700">Done</h3>
+            <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.done}</p>
           </div>
         </div>
 
         {showCreateForm ? (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Create New Request</h2>
               <Button
@@ -223,7 +237,7 @@ const Index = () => {
           />
         ) : (
           isKanbanMode ? renderKanbanView() : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {tasks?.map((task) => (
                 <RequestCard
                   key={task.id}

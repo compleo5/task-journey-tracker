@@ -14,7 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Define the exact status types to match the database enum
 type TaskStatus = "new" | "in-consideration" | "in-implementation" | "done" | "archived" | "backlogged";
 
 interface RequestDetailsProps {
@@ -22,7 +21,7 @@ interface RequestDetailsProps {
     id: string;
     title: string;
     description?: string | null;
-    status: TaskStatus;  // Use the precise type here
+    status: TaskStatus;
     priority: "low" | "medium" | "high";
     created_at: string;
     created_by?: { id: string } | null;
@@ -70,12 +69,12 @@ export const RequestDetails = ({ task, onBack }: RequestDetailsProps) => {
   const canUpdateStatus = isAdmin || user?.id === task.created_by?.id || user?.id === task.assigned_to?.id;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <Button variant="ghost" onClick={onBack}>← Back to List</Button>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <Button variant="ghost" onClick={onBack} className="!justify-start">← Back to List</Button>
         {canUpdateStatus && (
           <Select value={task.status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Update status" />
             </SelectTrigger>
             <SelectContent>
@@ -90,10 +89,10 @@ export const RequestDetails = ({ task, onBack }: RequestDetailsProps) => {
         )}
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <div className="flex justify-between items-start mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
-          <div className="flex gap-2">
+      <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{task.title}</h1>
+          <div className="flex flex-wrap gap-2">
             <Badge className={priorityColors[task.priority]}>
               {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
             </Badge>
@@ -103,21 +102,21 @@ export const RequestDetails = ({ task, onBack }: RequestDetailsProps) => {
           </div>
         </div>
 
-        <div className="space-y-4 mb-8">
-          <p className="text-gray-700">{task.description}</p>
-          <div className="text-sm text-gray-500">
+        <div className="space-y-4 mb-6 sm:mb-8">
+          <p className="text-sm sm:text-base text-gray-700">{task.description}</p>
+          <div className="text-xs sm:text-sm text-gray-500">
             Created {formatDistanceToNow(new Date(task.created_at))} ago
             {task.created_by?.id && ` by ${task.created_by.id}`}
           </div>
           {task.assigned_to?.id && (
-            <div className="text-sm text-gray-500">
+            <div className="text-xs sm:text-sm text-gray-500">
               Assigned to: {task.assigned_to.id}
             </div>
           )}
         </div>
 
-        <div className="border-t pt-6">
-          <h2 className="text-lg font-semibold mb-4">Comments</h2>
+        <div className="border-t pt-4 sm:pt-6">
+          <h2 className="text-base sm:text-lg font-semibold mb-4">Comments</h2>
           <CommentThread taskId={task.id} />
         </div>
       </div>

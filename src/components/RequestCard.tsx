@@ -44,7 +44,7 @@ export const RequestCard = ({
 }: RequestCardProps) => {
   return (
     <Card 
-      className="p-6 hover:shadow-md transition-shadow cursor-pointer animate-fade-in"
+      className="p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer animate-fade-in h-full flex flex-col"
       onClick={onClick}
       draggable={!!onDragStart}
       onDragStart={(e) => onDragStart?.(e, taskId!)}
@@ -55,12 +55,17 @@ export const RequestCard = ({
       onDrop={(e) => onDrop?.(e, status)}
     >
       <div className="flex flex-col h-full">
-        <h3 className="font-semibold text-lg text-gray-900 truncate mb-4" title={title}>
+        <h3 
+          className="font-semibold text-base sm:text-lg text-gray-900 truncate mb-2 sm:mb-4" 
+          title={title}
+        >
           {title.length > 10 ? `${title.substring(0, 10)}...` : title}
         </h3>
-        <p className="text-gray-600 mb-4 line-clamp-2 flex-grow">{description}</p>
-        <div className="mt-auto">
-          <div className="flex gap-2 mb-4">
+        <p className="text-sm sm:text-base text-gray-600 mb-4 line-clamp-2 flex-grow">
+          {description}
+        </p>
+        <div className="mt-auto space-y-2">
+          <div className="flex flex-wrap gap-2">
             <Badge className={priorityColors[priority]}>
               {priority.charAt(0).toUpperCase() + priority.slice(1)}
             </Badge>
@@ -68,7 +73,7 @@ export const RequestCard = ({
               {status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Badge>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             Created {formatDistanceToNow(createdAt)} ago
           </div>
         </div>

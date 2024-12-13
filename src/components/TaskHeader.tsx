@@ -22,6 +22,12 @@ export const TaskHeader = ({
 }: TaskHeaderProps) => {
   const isMobile = useIsMobile();
 
+  const handleKanbanToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onKanbanToggle();
+  };
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
       <div className="flex justify-between items-center w-full">
@@ -35,7 +41,7 @@ export const TaskHeader = ({
         </div>
         <Button
           variant="ghost"
-          onClick={onKanbanToggle}
+          onClick={handleKanbanToggle}
           className="p-2"
           aria-label="Toggle view"
         >

@@ -11,7 +11,9 @@ import { TaskHeader } from "@/components/TaskHeader";
 import { TaskStatistics } from "@/components/TaskStatistics";
 import { KanbanView } from "@/components/KanbanView";
 import { ListView } from "@/components/ListView";
-import { Button } from "@/components/ui/button"; // Added this import
+import { Button } from "@/components/ui/button";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { Archive, LogOut } from "lucide-react";
 
 type TaskStatus = Database['public']['Enums']['task_status'];
 
@@ -93,53 +95,81 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <TaskHeader
-          userEmail={user?.email}
-          isAdmin={isAdmin}
-          showArchived={showArchived}
-          isKanbanMode={isKanbanMode}
-          onCreateClick={() => setShowCreateForm(true)}
-          onArchiveToggle={() => setShowArchived(!showArchived)}
-          onKanbanToggle={() => setIsKanbanMode(!isKanbanMode)}
-          onLogout={handleLogout}
-        />
-
-        <TaskStatistics {...stats} />
-
-        {showCreateForm ? (
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Create New Request</h2>
-              <Button
-                variant="ghost"
-                onClick={() => setShowCreateForm(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-            <CreateRequestForm onSuccess={() => setShowCreateForm(false)} />
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="hidden sm:flex flex-col w-64 bg-white h-screen p-4 border-r">
+          <div className="flex-grow">
+            <Button
+              variant="ghost"
+              className="w-full justify-start mb-2"
+              onClick={() => setShowArchived(!showArchived)}
+            >
+              <Archive className="mr-2 h-5 w-5" />
+              {showArchived ? "Active Requests" : "Archived"}
+            </Button>
           </div>
-        ) : selectedRequest && selectedTask ? (
-          <RequestDetails 
-            task={selectedTask}
-            onBack={() => setSelectedRequest(null)}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-5 w-5" />
+            Logout
+          </Button>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
+          <TaskHeader
+            userEmail={user?.email}
+            isAdmin={isAdmin}
+            showArchived={showArchived}
+            isKanbanMode={isKanbanMode}
+            onCreateClick={() => setShowCreateForm(true)}
+            onArchiveToggle={() => setShowArchived(!showArchived)}
+            onKanbanToggle={() => setIsKanbanMode(!isKanbanMode)}
+            onLogout={handleLogout}
           />
-        ) : (
-          isKanbanMode ? (
-            <KanbanView
-              tasks={tasks}
-              onTaskClick={setSelectedRequest}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
+
+          <TaskStatistics {...stats} />
+
+          {showCreateForm ? (
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Create New Request</h2>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowCreateForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <CreateRequestForm onSuccess={() => setShowCreateForm(false)} />
+            </div>
+          ) : selectedRequest && selectedTask ? (
+            <RequestDetails 
+              task={selectedTask}
+              onBack={() => setSelectedRequest(null)}
             />
           ) : (
-            <ListView
-              tasks={tasks}
-              onTaskClick={setSelectedRequest}
-            />
-          )
-        )}
+            <>
+              {isKanbanMode ? (
+                <KanbanView
+                  tasks={tasks}
+                  onTaskClick={setSelectedRequest}
+                  onDragStart={handleDragStart}
+                  onDrop={handleDrop}
+                />
+              ) : (
+                <ListView
+                  tasks={tasks}
+                  onTaskClick={setSelectedRequest}
+                />
+              )}
+              <FloatingActionButton onClick={() => setShowCreateForm(true)} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

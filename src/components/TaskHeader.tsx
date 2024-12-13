@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Switch } from "lucide-react";
+import { Plus, LayoutGrid } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TaskHeaderProps {
@@ -39,7 +39,7 @@ export const TaskHeader = ({
           className="p-2"
           aria-label="Toggle view"
         >
-          <Switch className="h-5 w-5" />
+          <LayoutGrid className="h-5 w-5" />
         </Button>
       </div>
       {!showArchived && !isMobile && (

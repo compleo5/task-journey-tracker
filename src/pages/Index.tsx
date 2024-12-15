@@ -1,38 +1,17 @@
 import { useState } from "react";
-import { CreateRequestForm } from "@/components/CreateRequestForm";
-import { RequestDetails } from "@/components/RequestDetails";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
-import { TaskHeader } from "@/components/TaskHeader";
-import { TaskStatistics } from "@/components/TaskStatistics";
-import { KanbanView } from "@/components/KanbanView";
-import { ListView } from "@/components/ListView";
-import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { Archive, LayoutDashboard, LogOut, Menu } from "lucide-react";
-import { useKanbanView } from "@/hooks/use-kanban-view";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarTrigger,
-  SidebarProvider,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { TaskContainer } from "@/components/tasks/TaskContainer";
 
 type TaskStatus = Database['public']['Enums']['task_status'];
 
 const Index = () => {
-  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
-  const { isKanbanMode, toggleKanbanMode } = useKanbanView();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -90,126 +69,23 @@ const Index = () => {
     navigate("/auth");
   };
 
-  const selectedTask = tasks?.find(task => task.id === selectedRequest);
-
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
-  const stats = {
-    total: tasks?.length || 0,
-    new: tasks?.filter(task => task.status === 'new').length || 0,
-    inImplementation: tasks?.filter(task => task.status === 'in-implementation').length || 0,
-    done: tasks?.filter(task => task.status === 'done').length || 0,
-  };
-
-  const NavigationContent = () => (
-    <div className="flex flex-col h-full">
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => navigate('/')} className="w-full">
-            <LayoutDashboard className="h-4 w-4" />
-            <span>Dashboard</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            onClick={() => setShowArchived(!showArchived)}
-            className="w-full"
-          >
-            <Archive className="h-4 w-4" />
-            <span>Archived</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton onClick={handleLogout} className="w-full">
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </div>
-  );
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-gray-50 flex w-full">
-        {/* Desktop Sidebar */}
-        <Sidebar className="hidden md:flex">
-          <SidebarContent>
-            <NavigationContent />
-          </SidebarContent>
-        </Sidebar>
-
-        {/* Mobile Sidebar */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden fixed top-4 left-4 z-40"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <NavigationContent />
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
-          <TaskHeader
-            userEmail={user?.email}
-            isAdmin={isAdmin}
-            showArchived={showArchived}
-            isKanbanMode={isKanbanMode}
-            onCreateClick={() => setShowCreateForm(true)}
-            onArchiveToggle={() => setShowArchived(!showArchived)}
-            onKanbanToggle={toggleKanbanMode}
-            onLogout={handleLogout}
-          />
-
-          <TaskStatistics {...stats} />
-
-          {showCreateForm ? (
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Create New Request</h2>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-              <CreateRequestForm onSuccess={() => setShowCreateForm(false)} />
-            </div>
-          ) : selectedRequest && selectedTask ? (
-            <RequestDetails 
-              task={selectedTask}
-              onBack={() => setSelectedRequest(null)}
-            />
-          ) : (
-            <>
-              {isKanbanMode ? (
-                <KanbanView
-                  tasks={tasks}
-                  onTaskClick={setSelectedRequest}
-                  onDragStart={handleDragStart}
-                  onDrop={handleDrop}
-                />
-              ) : (
-                <ListView
-                  tasks={tasks}
-                  onTaskClick={setSelectedRequest}
-                />
-              )}
-              <FloatingActionButton onClick={() => setShowCreateForm(true)} />
-            </>
-          )}
-        </div>
-      </div>
-    </SidebarProvider>
+    <AppLayout showArchived={showArchived} setShowArchived={setShowArchived}>
+      <TaskContainer
+        tasks={tasks || []}
+        isAdmin={isAdmin}
+        userEmail={user?.email}
+        showArchived={showArchived}
+        onArchiveToggle={() => setShowArchived(!showArchived)}
+        handleLogout={handleLogout}
+        handleDragStart={handleDragStart}
+        handleDrop={handleDrop}
+      />
+    </AppLayout>
   );
 };
 

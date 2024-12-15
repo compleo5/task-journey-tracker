@@ -35,7 +35,7 @@ export const TaskHeader = ({
         </div>
         <Button
           variant="ghost"
-          onClick={() => onKanbanToggle()}
+          onClick={onKanbanToggle}
           className="p-2"
           aria-label="Toggle view"
         >

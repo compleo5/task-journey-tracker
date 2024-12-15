@@ -14,6 +14,7 @@ import { ListView } from "@/components/ListView";
 import { Button } from "@/components/ui/button";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { Archive, LogOut } from "lucide-react";
+import { useKanbanView } from "@/hooks/use-kanban-view";
 
 type TaskStatus = Database['public']['Enums']['task_status'];
 
@@ -21,7 +22,7 @@ const Index = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
-  const [isKanbanMode, setIsKanbanMode] = useState(false);
+  const { isKanbanMode, toggleKanbanMode } = useKanbanView();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -79,10 +80,6 @@ const Index = () => {
     navigate("/auth");
   };
 
-  const handleKanbanToggle = () => {
-    setIsKanbanMode(prev => !prev);
-  };
-
   const selectedTask = tasks?.find(task => task.id === selectedRequest);
 
   if (isLoading) {
@@ -128,7 +125,7 @@ const Index = () => {
             isKanbanMode={isKanbanMode}
             onCreateClick={() => setShowCreateForm(true)}
             onArchiveToggle={() => setShowArchived(!showArchived)}
-            onKanbanToggle={handleKanbanToggle}
+            onKanbanToggle={toggleKanbanMode}
             onLogout={handleLogout}
           />
 

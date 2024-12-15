@@ -103,7 +103,7 @@ const Index = () => {
     done: tasks?.filter(task => task.status === 'done').length || 0,
   };
 
-  const SidebarContent = () => (
+  const NavigationContent = () => (
     <div className="flex flex-col h-full">
       <SidebarMenu>
         <SidebarMenuItem>
@@ -137,7 +137,7 @@ const Index = () => {
         {/* Desktop Sidebar */}
         <Sidebar className="hidden md:flex">
           <SidebarContent>
-            <SidebarContent />
+            <NavigationContent />
           </SidebarContent>
         </Sidebar>
 
@@ -153,7 +153,7 @@ const Index = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <SidebarContent />
+            <NavigationContent />
           </SheetContent>
         </Sheet>
 

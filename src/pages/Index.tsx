@@ -11,10 +11,20 @@ import { TaskHeader } from "@/components/TaskHeader";
 import { TaskStatistics } from "@/components/TaskStatistics";
 import { KanbanView } from "@/components/KanbanView";
 import { ListView } from "@/components/ListView";
-import { Button } from "@/components/ui/button";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
-import { Archive, LogOut } from "lucide-react";
+import { Archive, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import { useKanbanView } from "@/hooks/use-kanban-view";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarTrigger,
+  SidebarProvider,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type TaskStatus = Database['public']['Enums']['task_status'];
 
@@ -93,29 +103,59 @@ const Index = () => {
     done: tasks?.filter(task => task.status === 'done').length || 0,
   };
 
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => navigate('/')} className="w-full">
+            <LayoutDashboard className="h-4 w-4" />
+            <span>Dashboard</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => setShowArchived(!showArchived)}
+            className="w-full"
+          >
+            <Archive className="h-4 w-4" />
+            <span>Archived</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={handleLogout} className="w-full">
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <div className="hidden sm:flex flex-col w-64 bg-white h-screen p-4 border-r">
-          <div className="flex-grow">
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        {/* Desktop Sidebar */}
+        <Sidebar className="hidden md:flex">
+          <SidebarContent>
+            <SidebarContent />
+          </SidebarContent>
+        </Sidebar>
+
+        {/* Mobile Sidebar */}
+        <Sheet>
+          <SheetTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start mb-2"
-              onClick={() => setShowArchived(!showArchived)}
+              size="icon"
+              className="md:hidden fixed top-4 left-4 z-40"
             >
-              <Archive className="mr-2 h-5 w-5" />
-              {showArchived ? "Active Requests" : "Archived"}
+              <Menu className="h-5 w-5" />
             </Button>
-          </div>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-5 w-5" />
-            Logout
-          </Button>
-        </div>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
 
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
           <TaskHeader
@@ -169,7 +209,7 @@ const Index = () => {
           )}
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

@@ -79,13 +79,16 @@ const Index = () => {
     navigate("/auth");
   };
 
+  const handleKanbanToggle = () => {
+    setIsKanbanMode(prev => !prev);
+  };
+
   const selectedTask = tasks?.find(task => task.id === selectedRequest);
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
-  // Calculate statistics
   const stats = {
     total: tasks?.length || 0,
     new: tasks?.filter(task => task.status === 'new').length || 0,
@@ -96,7 +99,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
-        {/* Sidebar */}
         <div className="hidden sm:flex flex-col w-64 bg-white h-screen p-4 border-r">
           <div className="flex-grow">
             <Button
@@ -118,7 +120,6 @@ const Index = () => {
           </Button>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
           <TaskHeader
             userEmail={user?.email}
@@ -127,7 +128,7 @@ const Index = () => {
             isKanbanMode={isKanbanMode}
             onCreateClick={() => setShowCreateForm(true)}
             onArchiveToggle={() => setShowArchived(!showArchived)}
-            onKanbanToggle={() => setIsKanbanMode(!isKanbanMode)}
+            onKanbanToggle={handleKanbanToggle}
             onLogout={handleLogout}
           />
 
